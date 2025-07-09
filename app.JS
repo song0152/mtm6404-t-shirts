@@ -1,36 +1,12 @@
-const { useReducer } = React;
+const { useState } = React;
 
-const initialState = tshirts;
-
-function reducer(state, action) {
-  switch (action.type) {
-    case "BUY":
-      return state.map((item, index) => {
-        if (index === action.index) {
-          const newStock = item.stock - item.quantity;
-          return { ...item, stock: newStock, quantity: 1 };
-        }
-        return item;
-      });
-    case "CHANGE_QUANTITY":
-      return state.map((item, index) => {
-        if (index === action.index) {
-          return { ...item, quantity: parseInt(action.quantity) };
-        }
-        return item;
-      });
-    default:
-      return state;
-  }
-}
-
-function TShirtCard({ shirt, index, dispatch }) {
+function TShirtCard({ shirt, index, onBuy, onQuantityChange }) {
   const handleBuy = () => {
-    dispatch({ type: "BUY", index });
+    onBuy(index);
   };
 
   const handleQuantityChange = (e) => {
-    dispatch({ type: "CHANGE_QUANTITY", index, quantity: e.target.value });
+    onQuantityChange(index, parseInt(e.target.value));
   };
 
   return (
@@ -59,18 +35,37 @@ function TShirtCard({ shirt, index, dispatch }) {
 }
 
 function App() {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [shirts, setShirts] = useState(tshirts);
+
+  const handleBuy = (index) => {
+    setShirts(prev =>
+      prev.map((item, i) =>
+        i === index
+          ? { ...item, stock: item.stock - item.quantity, quantity: 1 }
+          : item
+      )
+    );
+  };
+
+  const handleQuantityChange = (index, quantity) => {
+    setShirts(prev =>
+      prev.map((item, i) =>
+        i === index ? { ...item, quantity } : item
+      )
+    );
+  };
 
   return (
     <div>
       <h1>T-Shirts Store</h1>
       <div style={{ display: "flex", flexWrap: "wrap" }}>
-        {state.map((shirt, index) => (
+        {shirts.map((shirt, index) => (
           <TShirtCard
             key={index}
             shirt={shirt}
             index={index}
-            dispatch={dispatch}
+            onBuy={handleBuy}
+            onQuantityChange={handleQuantityChange}
           />
         ))}
       </div>
